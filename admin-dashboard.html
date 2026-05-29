@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>LeaveFlow HRMS Dashboard</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+  font-family:'Poppins',sans-serif;
+}
+
+body{
+  background:#0f172a;
+  color:white;
+  min-height:100vh;
+  display:flex;
+}
+
+.sidebar{
+  width:260px;
+  background:#111827;
+  padding:30px 20px;
+  display:flex;
+  flex-direction:column;
+  justify-content:space-between;
+  border-right:1px solid rgba(255,255,255,0.1);
+}
+
+.logo{
+  font-size:2rem;
+  font-weight:700;
+  margin-bottom:40px;
+}
+.logo span{ color:#ef4444; }
+
+.menu{ display:flex; flex-direction:column; gap:15px; }
+
+.menu button{
+  background:none;
+  border:none;
+  text-align:left;
+  color:#cbd5e1;
+  padding:14px;
+  border-radius:12px;
+  cursor:pointer;
+  transition:0.3s;
+}
+
+.menu button:hover,
+.menu button.active{
+  background:#ef4444;
+  color:white;
+}
+
+.logout-btn{
+  padding:14px;
+  background:#dc2626;
+  border:none;
+  border-radius:12px;
+  color:white;
+  cursor:pointer;
+}
+
+.main-content{
+  flex:1;
+  padding:30px;
+}
+
+.section{ display:none; background:#1e293b; padding:30px; border-radius:20px; margin-bottom:20px;}
+.section.active{ display:block; }
+
+.cards{
+  display:grid;
+  grid-template-columns:repeat(auto-fit,minmax(200px,1fr));
+  gap:20px;
+}
+
+.card{
+  background:#0f172a;
+  padding:20px;
+  border-radius:15px;
+}
+
+.status{ padding:6px 12px; border-radius:20px; }
+.pending{ background:yellow; color:black; }
+.approved{ background:green; }
+.rejected{ background:red; }
+</style>
+</head>
+
+<body>
+
+<div class="sidebar">
+  <div>
+    <div class="logo">Leave<span>Flow</span></div>
+
+    <div class="menu">
+      <button class="menu-btn active" data-section="dashboardSection">Dashboard</button>
+      <button class="menu-btn" data-section="leaveSection">Apply Leave</button>
+      <button class="menu-btn" data-section="historySection">History</button>
+      <button class="menu-btn" data-section="profileSection">Profile</button>
+      <button id="managerMenu" class="menu-btn" data-section="managerSection" style="display:none;">Manager</button>
+    </div>
+  </div>
+
+  <button class="logout-btn">Logout</button>
+</div>
+
+<div class="main-content">
+
+<div class="section active" id="dashboardSection">
+  <h2>Dashboard</h2>
+  <div class="cards">
+    <div class="card"><h3>Total</h3><h1 id="totalLeaves">0</h1></div>
+    <div class="card"><h3>Approved</h3><h1 id="approvedLeaves">0</h1></div>
+    <div class="card"><h3>Pending</h3><h1 id="pendingLeaves">0</h1></div>
+    <div class="card"><h3>Rejected</h3><h1 id="rejectedLeaves">0</h1></div>
+  </div>
+</div>
+
+<div class="section" id="leaveSection">
+  <h2>Apply Leave</h2>
+  <form id="leaveForm">
+    <select id="leaveType" required>
+      <option value="">Select</option>
+      <option>Sick Leave</option>
+      <option>Casual Leave</option>
+      <option>Emergency Leave</option>
+    </select>
+
+    <input type="date" id="fromDate" required>
+    <input type="date" id="toDate" required>
+    <textarea id="reason" required></textarea>
+
+    <button type="submit">Submit</button>
+  </form>
+</div>
+
+<div class="section" id="historySection">
+  <h2>History</h2>
+  <table>
+    <tbody id="leaveTableBody"></tbody>
+  </table>
+</div>
+
+<div class="section" id="profileSection">
+  <h2>Profile</h2>
+  <p id="profileName"></p>
+  <p id="profileEmail"></p>
+  <p id="profileRole"></p>
+</div>
+
+<div class="section" id="managerSection">
+  <h2>Manager Panel</h2>
+  <table>
+    <tbody id="managerTableBody"></tbody>
+  </table>
+</div>
+
+</div>
+
+<script>
+
+const API = "http://localhost:5000";
+
+const user = JSON.parse(localStorage.getItem("user"));
+
+if(!user){
+  window.location.href = "index.html";
+}
+
+document.getElementById("profileName").innerText = user.full_name;
+document.getElementById("profileEmail").innerText = user.email;
+document.getElementById("profileRole").innerText = user.role;
+
+document.getElementById("welcomeText")?.innerText;
+
+if(user.role === "manager"){
+  document.getElementById("managerMenu").style.display = "block";
+}
+
+/* MENU */
+document.querySelectorAll(".menu-btn").forEach(btn=>{
+  btn.onclick = () => {
+    document.querySelectorAll(".section").forEach(s=>s.classList.remove("active"));
+    document.querySelectorAll(".menu-btn").forEach(b=>b.classList.remove("active"));
+
+    document.getElementById(btn.dataset.section).classList.add("active");
+    btn.classList.add("active");
+  };
+});
+
+/* LOGOUT */
+document.querySelector(".logout-btn").onclick = () => {
+  localStorage.removeItem("user");
+  window.location.href = "index.html";
+};
+
+/* APPLY LEAVE */
+document.getElementById("leaveForm").addEventListener("submit", async (e)=>{
+  e.preventDefault();
+
+  try{
+    const res = await fetch(`${API}/apply-leave`,{
+      method:"POST",
+      headers:{ "Content-Type":"application/json" },
+      body:JSON.stringify({
+        user_id:user.id,
+        leave_type:leaveType.value,
+        from_date:fromDate.value,
+        to_date:toDate.value,
+        reason:reason.value
+      })
+    });
+
+    const data = await res.json();
+    alert(data.message || "Submitted");
+
+    loadLeaves();
+    e.target.reset();
+  }catch(err){
+    alert("Server error");
+  }
+});
+
+/* LOAD USER LEAVES */
+async function loadLeaves(){
+  try{
+    const res = await fetch(`${API}/my-leaves/${user.id}`);
+    const data = await res.json();
+
+    const leaves = data.leaves || [];
+
+    let total=0, approved=0, pending=0, rejected=0;
+
+    const tbody = document.getElementById("leaveTableBody");
+    tbody.innerHTML = "";
+
+    leaves.forEach(l=>{
+      total++;
+      if(l.status==="Approved") approved++;
+      else if(l.status==="Rejected") rejected++;
+      else pending++;
+
+      tbody.innerHTML += `
+        <tr>
+          <td>${l.leave_type}</td>
+          <td>${l.from_date}</td>
+          <td>${l.to_date}</td>
+          <td>${l.reason}</td>
+          <td><span class="status ${l.status.toLowerCase()}">${l.status}</span></td>
+        </tr>`;
+    });
+
+    totalLeaves.innerText = total;
+    approvedLeaves.innerText = approved;
+    pendingLeaves.innerText = pending;
+    rejectedLeaves.innerText = rejected;
+
+  }catch(err){
+    console.log("load error", err);
+  }
+}
+
+/* MANAGER */
+async function loadAllLeaves(){
+  if(user.role!=="manager") return;
+
+  try{
+    const res = await fetch(`${API}/all-leaves`);
+    const data = await res.json();
+
+    const leaves = data.leaves || [];
+    const tbody = document.getElementById("managerTableBody");
+    tbody.innerHTML = "";
+
+    leaves.forEach(l=>{
+      tbody.innerHTML += `
+        <tr>
+          <td>${l.full_name}</td>
+          <td>${l.leave_type}</td>
+          <td>${l.from_date}</td>
+          <td>${l.to_date}</td>
+          <td>${l.status}</td>
+          <td>
+            <button onclick="approveLeave(${l.id})">Approve</button>
+            <button onclick="rejectLeave(${l.id})">Reject</button>
+          </td>
+        </tr>`;
+    });
+
+  }catch(err){
+    console.log(err);
+  }
+}
+
+async function approveLeave(id){
+  await fetch(`${API}/approve-leave/${id}`,{method:"PUT"});
+  loadLeaves();
+  loadAllLeaves();
+}
+
+async function rejectLeave(id){
+  await fetch(`${API}/reject-leave/${id}`,{method:"PUT"});
+  loadLeaves();
+  loadAllLeaves();
+}
+
+loadLeaves();
+loadAllLeaves();
+
+</script>
+
+</body>
+</html>

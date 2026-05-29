@@ -1,0 +1,428 @@
+
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+
+  <meta charset="UTF-8" />
+
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+
+  <title>LeaveFlow HRMS - Login</title>
+
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+  <style>
+
+    *{
+      margin:0;
+      padding:0;
+      box-sizing:border-box;
+      font-family:'Poppins',sans-serif;
+    }
+
+    body{
+      min-height:100vh;
+      background:linear-gradient(135deg,#0f172a,#111827,#1e293b);
+      display:flex;
+      justify-content:center;
+      align-items:center;
+      color:white;
+      overflow:hidden;
+    }
+
+    .background-circle{
+      position:absolute;
+      border-radius:50%;
+      filter:blur(80px);
+      opacity:0.25;
+    }
+
+    .circle1{
+      width:300px;
+      height:300px;
+      background:#ef4444;
+      top:-80px;
+      left:-80px;
+    }
+
+    .circle2{
+      width:350px;
+      height:350px;
+      background:#3b82f6;
+      bottom:-100px;
+      right:-100px;
+    }
+
+    .container{
+      position:relative;
+      z-index:2;
+      width:90%;
+      max-width:1100px;
+      display:grid;
+      grid-template-columns:1fr 1fr;
+      gap:40px;
+      align-items:center;
+    }
+
+    .left-section h1{
+      font-size:4rem;
+      line-height:1.1;
+      margin-bottom:20px;
+    }
+
+    .left-section span{
+      color:#ef4444;
+    }
+
+    .left-section p{
+      color:#cbd5e1;
+      line-height:1.8;
+      font-size:1rem;
+      max-width:500px;
+      margin-bottom:30px;
+    }
+
+    .features{
+      display:flex;
+      flex-wrap:wrap;
+      gap:15px;
+    }
+
+    .feature-box{
+      padding:12px 18px;
+      background:rgba(255,255,255,0.08);
+      border:1px solid rgba(255,255,255,0.1);
+      border-radius:12px;
+      backdrop-filter:blur(10px);
+      font-size:0.9rem;
+    }
+
+    .login-card{
+      background:rgba(255,255,255,0.08);
+      border:1px solid rgba(255,255,255,0.1);
+      backdrop-filter:blur(18px);
+      padding:40px;
+      border-radius:24px;
+      box-shadow:0 15px 40px rgba(0,0,0,0.3);
+    }
+
+    .login-card h2{
+      text-align:center;
+      margin-bottom:10px;
+      font-size:2rem;
+    }
+
+    .login-card p{
+      text-align:center;
+      color:#cbd5e1;
+      margin-bottom:30px;
+      font-size:0.95rem;
+    }
+
+    .input-group{
+      margin-bottom:20px;
+    }
+
+    .input-group label{
+      display:block;
+      margin-bottom:8px;
+      font-size:0.9rem;
+      color:#e2e8f0;
+    }
+
+    .input-group input,
+    .input-group select{
+      width:100%;
+      padding:14px;
+      border:none;
+      border-radius:12px;
+      background:rgba(255,255,255,0.1);
+      color:white;
+      outline:none;
+      font-size:0.95rem;
+    }
+
+    .input-group input::placeholder{
+      color:#cbd5e1;
+    }
+
+    select option{
+      color:black;
+    }
+
+    .login-btn{
+      width:100%;
+      padding:14px;
+      background:linear-gradient(to right,#ef4444,#dc2626);
+      border:none;
+      border-radius:14px;
+      color:white;
+      font-size:1rem;
+      font-weight:600;
+      cursor:pointer;
+      transition:0.3s ease;
+      margin-top:10px;
+    }
+
+    .login-btn:hover{
+      transform:translateY(-2px);
+      box-shadow:0 8px 20px rgba(239,68,68,0.4);
+    }
+
+    .bottom-text{
+      text-align:center;
+      margin-top:20px;
+      color:#cbd5e1;
+      font-size:0.9rem;
+    }
+
+    .bottom-text a{
+      color:#ef4444;
+      text-decoration:none;
+      font-weight:600;
+    }
+
+    @media(max-width:900px){
+
+      .container{
+        grid-template-columns:1fr;
+        padding:30px 0;
+      }
+
+      .left-section{
+        text-align:center;
+      }
+
+      .left-section p{
+        margin:auto auto 30px;
+      }
+
+      .features{
+        justify-content:center;
+      }
+
+      .left-section h1{
+        font-size:3rem;
+      }
+
+    }
+
+  </style>
+
+</head>
+
+<body>
+
+  <div class="background-circle circle1"></div>
+
+  <div class="background-circle circle2"></div>
+
+  <div class="container">
+
+    <div class="left-section">
+
+      <h1>
+        Leave<span>Flow</span><br>
+        Management System
+      </h1>
+
+      <p>
+        A smart HR leave management portal where employees can apply for leave,
+        track requests, and HR managers can approve or reject leave applications
+        with notifications and real-time workflow management.
+      </p>
+
+      <div class="features">
+
+        <div class="feature-box">
+          Employee Login
+        </div>
+
+        <div class="feature-box">
+          HR Dashboard
+        </div>
+
+        <div class="feature-box">
+          Leave Notifications
+        </div>
+
+        <div class="feature-box">
+          Attendance Ready
+        </div>
+
+      </div>
+
+    </div>
+
+    <div class="login-card">
+
+      <h2>Welcome Back</h2>
+
+      <p>
+        Login to continue to your dashboard
+      </p>
+
+      <form id="loginForm">
+
+        <div class="input-group">
+
+          <label>Email Address</label>
+
+          <input
+            type="email"
+            id="email"
+            placeholder="Enter your email"
+            required
+          >
+
+        </div>
+
+        <div class="input-group">
+
+          <label>Password</label>
+
+          <input
+            type="password"
+            id="password"
+            placeholder="Enter your password"
+            required
+          >
+
+        </div>
+
+        <div class="input-group">
+
+          <label>Login As</label>
+
+          <select id="role" required>
+
+            <option value="">
+              Select Role
+            </option>
+
+            <option value="employee">
+              Employee
+            </option>
+
+            <option value="manager">
+              HR Manager
+            </option>
+
+          </select>
+
+        </div>
+
+        <button class="login-btn" type="submit">
+          Login to Dashboard
+        </button>
+
+      </form>
+
+      <div class="bottom-text">
+        New employee?
+        <a href="register.html">
+          Register Account
+        </a>
+      </div>
+
+    </div>
+
+  </div>
+
+  <script>
+
+    const loginForm =
+      document.getElementById('loginForm');
+
+    loginForm.addEventListener(
+      'submit',
+      async function(e){
+
+        e.preventDefault();
+
+        const email =
+          document.getElementById('email').value;
+
+        const password =
+          document.getElementById('password').value;
+
+        const role =
+          document.getElementById('role').value;
+
+        try{
+
+          const response = await fetch(
+            'http://localhost:5000/login',
+            {
+
+              method:'POST',
+
+              headers:{
+                'Content-Type':'application/json'
+              },
+
+              body:JSON.stringify({
+                email,
+                password,
+                role
+              })
+
+            }
+          );
+
+          const data = await response.json();
+
+          if(data.success){
+
+            alert('Login Successful');
+
+            localStorage.setItem(
+              'user',
+              JSON.stringify(data.user)
+            );
+
+            if(data.role === 'employee'){
+
+              window.location.href =
+                'employee-dashboard.html';
+
+            }
+
+            else if(data.role === 'admin'){
+
+              window.location.href =
+                'admin-dashboard.html';
+
+            }
+
+          }
+
+          else{
+
+            alert(data.message);
+
+          }
+
+        }
+
+        catch(error){
+
+          console.log(error);
+
+          alert('Cannot connect to server');
+
+        }
+
+      }
+    );
+
+  </script>
+
+</body>
+</html>
+
