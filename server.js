@@ -1,7 +1,6 @@
 const express = require('express');
 const mysql = require('mysql2');
 const cors = require('cors');
-const bodyParser = require('body-parser');
 
 const app = express();
 
@@ -10,8 +9,7 @@ const app = express();
 ========================= */
 
 app.use(cors());
-
-app.use(bodyParser.json());
+app.use(express.json());
 
 /* =========================
    DATABASE CONNECTION
@@ -19,714 +17,315 @@ app.use(bodyParser.json());
 
 const db = mysql.createConnection({
 
-    host: 'localhost',
-    user: 'root',
-    password: 'aachujuva1234A',
-    database: 'leaveflow'
+  host: 'localhost',
+  user: 'root',
+  password: 'aachujuva1234A',
+  database: 'leaveflow'
 
 });
-
-/* =========================
-   CONNECT MYSQL
-========================= */
 
 db.connect((err) => {
 
-    if(err){
+  if(err){
 
-        console.log('❌ Database Connection Failed');
+    console.log('❌ Database Connection Failed');
+    console.log(err);
+
+  }
+
+  else{
+
+    console.log('✅ MySQL Connected Successfully');
+
+  }
+
+});
+
+/* =========================
+   REGISTER USER
+========================= */
+
+app.post('/register', (req,res) => {
+
+  const {
+    full_name,
+    email,
+    password,
+    role
+  } = req.body;
+
+  const sql =
+  `
+  INSERT INTO users
+  (
+    full_name,
+    email,
+    password,
+    role
+  )
+
+  VALUES (?,?,?,?)
+  `;
+
+  db.query(
+    sql,
+    [
+      full_name,
+      email,
+      password,
+      role
+    ],
+
+    (err,result) => {
+
+      if(err){
 
         console.log(err);
 
+        return res.json({
+
+          success:false,
+          message:'Registration Failed'
+
+        });
+
+      }
+
+      res.json({
+
+        success:true,
+        message:'Registration Successful'
+
+      });
+
     }
-
-    else{
-
-        console.log('✅ MySQL Connected');
-
-    }
+  );
 
 });
 
 /* =========================
-   REGISTER API
+   LOGIN USER
 ========================= */
 
-app.post('/register', (req, res) => {
+app.post('/login', (req,res) => {
 
-    const {
+  const {
+    email,
+    password,
+    role
+  } = req.body;
 
-        full_name,
-        email,
-        role,
-        password
+  const sql =
+  `
+  SELECT * FROM users
+  WHERE email = ?
+  AND password = ?
+  AND role = ?
+  `;
 
-    } = req.body;
+  db.query(
+    sql,
+    [
+      email,
+      password,
+      role
+    ],
 
-    /* VALIDATION */
+    (err,result) => {
 
-    if(
-        !full_name ||
-        !email ||
-        !role ||
-        !password
-    ){
+      if(err){
+
+        console.log(err);
 
         return res.json({
 
-            success:false,
-            message:'All fields are required'
+          success:false,
+          message:'Database Error'
 
         });
 
+      }
+
+      if(result.length > 0){
+
+        res.json({
+
+          success:true,
+          user:result[0]
+
+        });
+
+      }
+
+      else{
+
+        res.json({
+
+          success:false,
+          message:'Invalid Email, Password or Role'
+
+        });
+
+      }
+
     }
-
-    /* CHECK EXISTING EMAIL */
-
-    const checkSql =
-    `
-    SELECT * FROM users
-    WHERE email = ?
-    `;
-
-    db.query(checkSql,[email],(err,result)=>{
-
-        if(err){
-
-            console.log(err);
-
-            return res.json({
-
-                success:false,
-                message:'Database Error'
-
-            });
-
-        }
-
-        if(result.length > 0){
-
-            return res.json({
-
-                success:false,
-                message:'Email already registered'
-
-            });
-
-        }
-
-        /* INSERT USER */
-
-        const insertSql =
-        `
-        INSERT INTO users
-        (
-            full_name,
-            email,
-            role,
-            password
-        )
-
-        VALUES (?,?,?,?)
-        `;
-
-        db.query(
-
-            insertSql,
-
-            [
-                full_name,
-                email,
-                role,
-                password
-            ],
-
-            (err,result)=>{
-
-                if(err){
-
-                    console.log(err);
-
-                    res.json({
-
-                        success:false,
-                        message:'Registration Failed'
-
-                    });
-
-                }
-
-                else{
-
-                    res.json({
-
-                        success:true,
-                        message:'Registration Successful'
-
-                    });
-
-                }
-
-            }
-
-        );
-
-    });
+  );
 
 });
 
 /* =========================
-   LOGIN API
+   APPLY LEAVE
 ========================= */
 
-app.post('/login',(req,res)=>{
+app.post('/apply-leave', (req,res) => {
 
-    const {
+  const {
 
-        email,
-        password,
-        role
+    user_id,
+    employee_name,
+    leave_type,
+    from_date,
+    to_date,
+    reason
 
-    } = req.body;
+  } = req.body;
 
-    if(
-        !email ||
-        !password ||
-        !role
-    ){
+  console.log(req.body);
+
+  const sql =
+  `
+  INSERT INTO leaves
+  (
+    user_id,
+    employee_name,
+    leave_type,
+    from_date,
+    to_date,
+    reason,
+    status
+  )
+
+  VALUES (?,?,?,?,?,?,?)
+  `;
+
+  db.query(
+    sql,
+    [
+
+      user_id,
+      employee_name,
+      leave_type,
+      from_date,
+      to_date,
+      reason,
+      'Pending'
+
+    ],
+
+    (err,result) => {
+
+      if(err){
+
+        console.log('❌ APPLY LEAVE ERROR');
+        console.log(err);
 
         return res.json({
 
-            success:false,
-            message:'Please fill all fields'
+          success:false,
+          message:'Failed To Apply Leave'
 
         });
 
+      }
+
+      res.json({
+
+        success:true,
+        message:'Leave Applied Successfully'
+
+      });
+
     }
-
-    const sql =
-    `
-    SELECT * FROM users
-    WHERE email=? AND password=? AND role=?
-    `;
-
-    db.query(
-
-        sql,
-
-        [
-            email,
-            password,
-            role
-        ],
-
-        (err,result)=>{
-
-            if(err){
-
-                console.log(err);
-
-                return res.json({
-
-                    success:false,
-                    message:'Database Error'
-
-                });
-
-            }
-
-            if(result.length > 0){
-
-                res.json({
-
-                    success:true,
-                    message:'Login Successful',
-
-                    role:result[0].role,
-
-                    user:{
-
-                        id:result[0].id,
-                        full_name:result[0].full_name,
-                        email:result[0].email,
-                        role:result[0].role
-
-                    }
-
-                });
-
-            }
-
-            else{
-
-                res.json({
-
-                    success:false,
-                    message:'Invalid Credentials'
-
-                });
-
-            }
-
-        }
-
-    );
+  );
 
 });
 
 /* =========================
-   APPLY LEAVE API
+   GET EMPLOYEE LEAVES
 ========================= */
 
-app.post('/apply-leave',(req,res)=>{
+app.get('/my-leaves/:id', (req,res) => {
 
-    const {
+  const userId =
+    req.params.id;
 
-        user_id,
-        leave_type,
-        from_date,
-        to_date,
-        reason
+  const sql =
+  `
+  SELECT * FROM leaves
+  WHERE user_id = ?
+  ORDER BY id DESC
+  `;
 
-    } = req.body;
+  db.query(
+    sql,
+    [userId],
 
-    if(
-        !user_id ||
-        !leave_type ||
-        !from_date ||
-        !to_date ||
-        !reason
-    ){
+    (err,result) => {
+
+      if(err){
+
+        console.log(err);
+
+        return res.json([]);
+
+      }
+
+      res.json(result);
+
+    }
+  );
+
+});
+
+/* =========================
+   GET ALL LEAVES
+========================= */
+
+app.get('/all-leaves', (req,res) => {
+
+  const sql =
+  `
+  SELECT * FROM leaves
+  ORDER BY id DESC
+  `;
+
+  db.query(
+    sql,
+
+    (err,result) => {
+
+      if(err){
+
+        console.log(err);
 
         return res.json({
 
-            success:false,
-            message:'Please fill all fields'
+          success:false,
+          leaves:[]
 
         });
+
+      }
+
+      res.json({
+
+        success:true,
+        leaves:result
+
+      });
 
     }
-
-    /* CHECK DATE */
-
-    if(new Date(from_date) > new Date(to_date)){
-
-        return res.json({
-
-            success:false,
-            message:'From date cannot be greater than To date'
-
-        });
-
-    }
-
-    const sql =
-    `
-    INSERT INTO leave_requests
-    (
-        user_id,
-        leave_type,
-        from_date,
-        to_date,
-        reason,
-        status,
-        created_at
-    )
-
-    VALUES
-    (
-        ?,
-        ?,
-        ?,
-        ?,
-        ?,
-        'Pending',
-        NOW()
-    )
-    `;
-
-    db.query(
-
-        sql,
-
-        [
-            user_id,
-            leave_type,
-            from_date,
-            to_date,
-            reason
-        ],
-
-        (err,result)=>{
-
-            if(err){
-
-                console.log(err);
-
-                res.json({
-
-                    success:false,
-                    message:'Failed To Apply Leave'
-
-                });
-
-            }
-
-            else{
-
-                res.json({
-
-                    success:true,
-                    message:'Leave Request Submitted Successfully'
-
-                });
-
-            }
-
-        }
-
-    );
-
-});
-
-/* =========================
-   GET USER LEAVES
-========================= */
-
-app.get('/my-leaves/:id',(req,res)=>{
-
-    const userId = req.params.id;
-
-    const sql =
-    `
-    SELECT *
-
-    FROM leave_requests
-
-    WHERE user_id = ?
-
-    ORDER BY id DESC
-    `;
-
-    db.query(sql,[userId],(err,result)=>{
-
-        if(err){
-
-            console.log(err);
-
-            return res.json({
-
-                success:false,
-                message:'Error Fetching Leaves'
-
-            });
-
-        }
-
-        res.json({
-
-            success:true,
-            leaves:result
-
-        });
-
-    });
-
-});
-
-/* =========================
-   GET USER PROFILE
-========================= */
-
-app.get('/profile/:id',(req,res)=>{
-
-    const userId = req.params.id;
-
-    const sql =
-    `
-    SELECT
-        id,
-        full_name,
-        email,
-        role
-
-    FROM users
-
-    WHERE id = ?
-    `;
-
-    db.query(sql,[userId],(err,result)=>{
-
-        if(err){
-
-            console.log(err);
-
-            return res.json({
-
-                success:false,
-                message:'Database Error'
-
-            });
-
-        }
-
-        if(result.length === 0){
-
-            return res.json({
-
-                success:false,
-                message:'User Not Found'
-
-            });
-
-        }
-
-        res.json({
-
-            success:true,
-            user:result[0]
-
-        });
-
-    });
-
-});
-
-/* =========================
-   UPDATE PROFILE
-========================= */
-
-app.put('/update-profile/:id',(req,res)=>{
-
-    const userId = req.params.id;
-
-    const {
-
-        full_name,
-        email
-
-    } = req.body;
-
-    const sql =
-    `
-    UPDATE users
-
-    SET
-        full_name = ?,
-        email = ?
-
-    WHERE id = ?
-    `;
-
-    db.query(
-
-        sql,
-
-        [
-            full_name,
-            email,
-            userId
-        ],
-
-        (err,result)=>{
-
-            if(err){
-
-                console.log(err);
-
-                return res.json({
-
-                    success:false,
-                    message:'Failed To Update Profile'
-
-                });
-
-            }
-
-            res.json({
-
-                success:true,
-                message:'Profile Updated Successfully'
-
-            });
-
-        }
-
-    );
-
-});
-
-/* =========================
-   DELETE LEAVE REQUEST
-========================= */
-
-app.delete('/delete-leave/:id',(req,res)=>{
-
-    const leaveId = req.params.id;
-
-    const sql =
-    `
-    DELETE FROM leave_requests
-    WHERE id = ?
-    `;
-
-    db.query(sql,[leaveId],(err,result)=>{
-
-        if(err){
-
-            console.log(err);
-
-            return res.json({
-
-                success:false,
-                message:'Failed To Delete Leave'
-
-            });
-
-        }
-
-        res.json({
-
-            success:true,
-            message:'Leave Deleted Successfully'
-
-        });
-
-    });
-
-});
-
-/* =========================
-   DASHBOARD STATS
-========================= */
-
-app.get('/dashboard-stats/:id',(req,res)=>{
-
-    const userId = req.params.id;
-
-    const sql =
-    `
-    SELECT
-
-    COUNT(*) AS total,
-
-    SUM(
-        CASE
-        WHEN status='Approved'
-        THEN 1
-        ELSE 0
-        END
-    ) AS approved,
-
-    SUM(
-        CASE
-        WHEN status='Pending'
-        THEN 1
-        ELSE 0
-        END
-    ) AS pending,
-
-    SUM(
-        CASE
-        WHEN status='Rejected'
-        THEN 1
-        ELSE 0
-        END
-    ) AS rejected
-
-    FROM leave_requests
-
-    WHERE user_id = ?
-    `;
-
-    db.query(sql,[userId],(err,result)=>{
-
-        if(err){
-
-            console.log(err);
-
-            return res.json({
-
-                success:false,
-                message:'Error Loading Stats'
-
-            });
-
-        }
-
-        res.json({
-
-            success:true,
-            stats:{
-
-                total:
-                    result[0].total || 0,
-
-                approved:
-                    result[0].approved || 0,
-
-                pending:
-                    result[0].pending || 0,
-
-                rejected:
-                    result[0].rejected || 0
-
-            }
-
-        });
-
-    });
-
-});
-
-/* =========================
-   ADMIN - GET ALL LEAVES
-========================= */
-
-app.get('/all-leaves',(req,res)=>{
-
-    const sql =
-    `
-    SELECT
-
-        leave_requests.*,
-
-        users.full_name,
-
-        users.email
-
-    FROM leave_requests
-
-    JOIN users
-
-    ON leave_requests.user_id = users.id
-
-    ORDER BY leave_requests.id DESC
-    `;
-
-    db.query(sql,(err,result)=>{
-
-        if(err){
-
-            console.log(err);
-
-            return res.json({
-
-                success:false,
-                message:'Error Fetching Leaves'
-
-            });
-
-        }
-
-        res.json({
-
-            success:true,
-            leaves:result
-
-        });
-
-    });
+  );
 
 });
 
@@ -734,42 +333,46 @@ app.get('/all-leaves',(req,res)=>{
    APPROVE LEAVE
 ========================= */
 
-app.put('/approve-leave/:id',(req,res)=>{
+app.put('/approve-leave/:id', (req,res) => {
 
-    const leaveId = req.params.id;
+  const leaveId =
+    req.params.id;
 
-    const sql =
-    `
-    UPDATE leave_requests
+  const sql =
+  `
+  UPDATE leaves
+  SET status = 'Approved'
+  WHERE id = ?
+  `;
 
-    SET status='Approved'
+  db.query(
+    sql,
+    [leaveId],
 
-    WHERE id=?
-    `;
+    (err,result) => {
 
-    db.query(sql,[leaveId],(err,result)=>{
+      if(err){
 
-        if(err){
+        console.log(err);
 
-            console.log(err);
+        return res.json({
 
-            return res.json({
-
-                success:false,
-                message:'Failed To Approve'
-
-            });
-
-        }
-
-        res.json({
-
-            success:true,
-            message:'Leave Approved'
+          success:false,
+          message:'Approval Failed'
 
         });
 
-    });
+      }
+
+      res.json({
+
+        success:true,
+        message:'Leave Approved Successfully'
+
+      });
+
+    }
+  );
 
 });
 
@@ -777,52 +380,46 @@ app.put('/approve-leave/:id',(req,res)=>{
    REJECT LEAVE
 ========================= */
 
-app.put('/reject-leave/:id',(req,res)=>{
+app.put('/reject-leave/:id', (req,res) => {
 
-    const leaveId = req.params.id;
+  const leaveId =
+    req.params.id;
 
-    const sql =
-    `
-    UPDATE leave_requests
+  const sql =
+  `
+  UPDATE leaves
+  SET status = 'Rejected'
+  WHERE id = ?
+  `;
 
-    SET status='Rejected'
+  db.query(
+    sql,
+    [leaveId],
 
-    WHERE id=?
-    `;
+    (err,result) => {
 
-    db.query(sql,[leaveId],(err,result)=>{
+      if(err){
 
-        if(err){
+        console.log(err);
 
-            console.log(err);
+        return res.json({
 
-            return res.json({
-
-                success:false,
-                message:'Failed To Reject'
-
-            });
-
-        }
-
-        res.json({
-
-            success:true,
-            message:'Leave Rejected'
+          success:false,
+          message:'Reject Failed'
 
         });
 
-    });
+      }
 
-});
+      res.json({
 
-/* =========================
-   ROOT API
-========================= */
+        success:true,
+        message:'Leave Rejected Successfully'
 
-app.get('/',(req,res)=>{
+      });
 
-    res.send('🚀 LeaveFlow HRMS Backend Running');
+    }
+  );
 
 });
 
@@ -830,8 +427,12 @@ app.get('/',(req,res)=>{
    SERVER
 ========================= */
 
-app.listen(5000,()=>{
+const PORT = 5000;
 
-    console.log('🚀 Server running on port 5000');
+app.listen(PORT, () => {
+
+  console.log(
+    `🚀 Server running on port ${PORT}`
+  );
 
 });
